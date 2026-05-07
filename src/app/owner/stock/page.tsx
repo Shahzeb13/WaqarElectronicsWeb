@@ -87,16 +87,20 @@ export default function OwnerStock() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchData = async () => {
+    setLoading(true);
+    setError('');
+
+    // Fetch branches separately so it doesn't fail if stock fails
+    api.get('/owner/branches')
+      .then(res => setBranches(res.data.branches))
+      .catch(err => console.error('Failed to fetch branches:', err));
+
     try {
-      setLoading(true);
-      const [stockRes, branchesRes] = await Promise.all([
-        api.get('/owner/stock'),
-        api.get('/owner/branches')
-      ]);
+      const stockRes = await api.get('/owner/stock');
       setStock(stockRes.data.stock);
-      setBranches(branchesRes.data.branches);
     } catch (err: any) {
-      setError('Failed to fetch data');
+      setError('Failed to fetch inventory data');
+      console.error('Stock fetch error:', err);
     } finally {
       setLoading(false);
     }
@@ -152,7 +156,10 @@ export default function OwnerStock() {
       fetchData();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Action failed');
+      console.error('Stock submission error:', err);
+      const msg = err.response?.data?.message || 'Action failed';
+      const details = err.response?.data?.error || err.response?.data?.details;
+      setError(details ? `${msg}: ${JSON.stringify(details)}` : msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -169,7 +176,7 @@ export default function OwnerStock() {
       fetchData();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
-      setError('Failed to delete item. It may be linked to sales.');
+      setError(err.response?.data?.message || 'Failed to delete item');
     } finally {
       setIsSubmitting(false);
     }
@@ -429,7 +436,7 @@ export default function OwnerStock() {
                       <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g. Dawlance Refrigerator" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-5 text-[14px] font-bold focus:outline-none focus:border-[#f5c800] transition-all" required />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1"><Tag size={12} /> Category</label>
+                      <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1"><Tag size={12} /> Brand Name </label>
                       <input type="text" name="category" value={formData.category} onChange={handleInputChange} placeholder="e.g. Home Appliances" className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-5 text-[14px] font-bold focus:outline-none focus:border-[#f5c800] transition-all" required />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
