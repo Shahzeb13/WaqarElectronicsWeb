@@ -10,6 +10,7 @@ interface User {
   email: string;
   role: 'OWNER' | 'BRANCH_MANAGER' | 'EMPLOYEE';
   branchId?: string | null;
+  branch?: { id: string; name: string } | null;
 }
 
 interface AuthContextType {
@@ -47,7 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(jwtToken);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', jwtToken);
-    router.push('/dashboard');
+    
+    if (userData.role === 'OWNER') {
+      router.push('/owner/dashboard');
+    } else if (userData.role === 'BRANCH_MANAGER') {
+      router.push('/manager/dashboard');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   const logout = () => {

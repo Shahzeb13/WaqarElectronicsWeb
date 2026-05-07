@@ -3,10 +3,11 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function SettingsRedirect() {
+export default function OwnerPage() {
   const router = useRouter();
+
   useEffect(() => {
-    router.push('/dashboard');
+    router.push('/owner/dashboard');
   }, [router]);
 
   return null;
